@@ -1,0 +1,1597 @@
+# BUBLIX SHIPPING
+# MASTER SYSTEM REQUIREMENTS DOCUMENT (SRD)
+
+**Version:** 3.0  
+**Status:** Approved Architecture – Ready for Technical Design  
+**Platform:** Bublix Shipping Global Logistics Platform  
+**Official Domain:** bublixshipping.com  
+**Hosting:** Railway Cloud  
+**Database:** PostgreSQL  
+**Backend:** Node.js + Express.js  
+**Frontend:** Next.js + Tailwind CSS  
+**ORM:** Sequelize + Sequelize CLI Migrations
+
+---
+
+# 1. Executive Summary
+
+Bublix Shipping is a centralized logistics and shipment management platform designed to manage domestic and international shipping operations.
+
+The platform will provide:
+
+1. Public corporate website.
+2. Public shipment tracking.
+3. Central administration dashboard.
+4. Branch and warehouse management.
+5. Shipment creation and management.
+6. Domestic and international shipment processing.
+7. Financial and multi-currency management.
+8. Driver and delivery management.
+9. Merchant and business customer management.
+10. Shipping documents and automated printing.
+11. Notifications and customer communication.
+12. API infrastructure for future Flutter mobile applications.
+
+The system will initially operate from one branch while supporting multiple branches and countries through its database and business architecture.
+
+# 2. Business Requirements and Scope
+
+## 2.1 Business Model
+
+Bublix Shipping will support two main shipping categories:
+
+### A. Domestic Shipping
+
+- Shipments within the same country.
+- City-to-city deliveries.
+- Branch-to-branch transfers.
+- Local pickup and delivery.
+- Local pricing rules.
+- Local currency transactions.
+
+### B. International Shipping
+
+- Shipments between different countries.
+- Origin and destination country management.
+- International shipping routes.
+- Air, sea and land shipping services.
+- Customs clearance information.
+- Commercial invoices.
+- Customs and additional shipping charges.
+- Multiple currencies.
+- International tracking events.
+
+## 2.2 Branch Expansion Strategy
+
+The first operational deployment will use one branch.
+
+However, the architecture must support:
+
+- Multiple branches.
+- Multiple warehouses.
+- Different countries.
+- Branch managers.
+- Branch employees.
+- Inter-branch shipment transfers.
+- Branch-specific pricing where authorized.
+- Independent financial reports per branch.
+
+Every shipment must identify its origin and destination branches or hubs where applicable.
+
+## 2.3 Language Support
+
+The platform will support:
+
+- English (EN).
+- Arabic (AR).
+- RTL and LTR layouts.
+- Language switching without losing the current page.
+- Translated shipment status descriptions.
+- Localized dates and numbers.
+- Currency formatting.
+
+**Important:** The administration dashboard and public website will be bilingual, while shipping documents such as Waybills and Commercial Invoices will remain English-only in the initial version.
+
+# 3. Technology Architecture
+
+| Layer | Technology |
+|---|---|
+| Public Website | Next.js |
+| Admin Dashboard | Next.js |
+| Styling | Tailwind CSS |
+| Backend | Node.js + Express.js |
+| Database | PostgreSQL |
+| ORM | Sequelize |
+| Database Migrations | Sequelize CLI |
+| Authentication | JWT + Refresh Tokens |
+| API | RESTful API |
+| Hosting | Railway |
+| File Storage | Cloudinary or S3-compatible storage |
+| PDF Documents | PDF Generation Service |
+| Barcode | Code128 |
+| QR Code | QR Code Generator |
+| Notifications | Email / WhatsApp / SMS |
+| Background Jobs | Redis + BullMQ (when required) |
+| Future Mobile Apps | Flutter |
+
+## 3.1 Architecture Pattern
+
+Use a Modular Monolith architecture.
+
+The backend will be divided into independent business modules while running within one backend application.
+
+Modules:
+
+- Authentication
+- Users & Permissions
+- Branches & Hubs
+- Customers & Merchants
+- Shipments
+- Tracking
+- Pricing
+- Finance
+- Payments
+- Drivers & Deliveries
+- Documents
+- Notifications
+- Reports
+- Audit Logs
+- System Settings
+
+This architecture provides maintainability without introducing unnecessary microservices complexity.
+
+# 4. Database Architecture – PostgreSQL
+
+The database must be designed for domestic and international operations from the beginning.
+
+All database changes must be managed through Sequelize CLI migrations.
+
+No production database schema changes should be performed manually.
+
+## 4.1 Database Modules and Tables
+
+### Module A – Organization and Locations
+
+| Table | Purpose |
+|---|---|
+| Organizations | Company information and configuration |
+| Hubs | Branches and warehouses |
+| Countries | Supported countries |
+| Cities | Cities and regions |
+| ShippingZones | Delivery and pricing zones |
+| ShippingRoutes | Shipping routes between locations |
+
+### Module B – Users and Security
+
+| Table | Purpose |
+|---|---|
+| Users | System accounts |
+| Roles | User roles |
+| Permissions | Individual permissions |
+| RolePermissions | Role-to-permission relationships |
+| UserRoles | User-to-role relationships |
+| RefreshTokens | Authentication sessions |
+| AuditLogs | System activity history |
+
+### Module C – Customers and Merchants
+
+| Table | Purpose |
+|---|---|
+| Customers | Individual and business customers |
+| CustomerAddresses | Customer pickup and delivery addresses |
+| MerchantProfiles | Business account information |
+| MerchantContracts | Commercial pricing and agreements |
+
+### Module D – Shipment Management
+
+| Table | Purpose |
+|---|---|
+| Shipments | Main shipment records |
+| ShipmentItems | Shipment package details |
+| ShipmentEvents | Shipment tracking history |
+| ShipmentAssignments | Branch and driver assignments |
+| ShipmentDocuments | Shipment-related documents |
+| ShipmentCharges | Additional charges |
+| DeliveryProofs | Delivery confirmation evidence |
+| ShipmentExceptions | Delays, failed deliveries and exceptions |
+
+### Module E – Pricing Engine
+
+| Table | Purpose |
+|---|---|
+| ShippingServices | Air, Sea, Land, Express and Local |
+| PricingRules | Shipping pricing rules |
+| PricingZones | Pricing zone relationships |
+| ShippingQuotes | Customer shipping quotations |
+| CurrencyRates | Exchange rates |
+
+### Module F – Finance
+
+| Table | Purpose |
+|---|---|
+| Invoices | Customer invoices |
+| Payments | Payment transactions |
+| PaymentAllocations | Payment-to-invoice allocations |
+| CODCollections | Cash-on-delivery collections |
+| BranchExpenses | Branch expenses |
+| FinancialTransactions | Financial transaction records |
+| CashierSessions | Cashier opening and closing records |
+
+### Module G – Notifications and System
+
+| Table | Purpose |
+|---|---|
+| Notifications | Notification records |
+| NotificationTemplates | Message templates |
+| NotificationLogs | Delivery attempts and results |
+| SystemSettings | System configurations |
+| APIKeys | Future merchant API access |
+| IdempotencyKeys | Duplicate request protection |
+
+## 4.2 Important Database Relationships
+
+- Organizations 1:N Hubs
+- Hubs 1:N Users
+- Customers 1:N Shipments
+- Shipments 1:N ShipmentItems
+- Shipments 1:N ShipmentEvents
+- Shipments 1:N ShipmentCharges
+- Shipments 1:N ShipmentDocuments
+- Shipments 1:N ShipmentAssignments
+- Shipments 1:N ShipmentPayments through PaymentAllocations
+- Users 1:N ShipmentEvents
+- Drivers 1:N ShipmentAssignments
+- Invoices 1:N PaymentAllocations
+- Customers 1:N CustomerAddresses
+- ShippingServices 1:N PricingRules
+
+## 4.3 Important Shipment Fields
+
+The Shipments table should include:
+
+| Field | Type |
+|---|---|
+| id | UUID |
+| trackingNumber | VARCHAR UNIQUE |
+| shipmentType | ENUM |
+| serviceTypeId | UUID |
+| senderCustomerId | UUID |
+| receiverName | VARCHAR |
+| receiverPhone | VARCHAR |
+| originCountryId | UUID |
+| destinationCountryId | UUID |
+| originHubId | UUID |
+| destinationHubId | UUID |
+| weight | DECIMAL |
+| volumetricWeight | DECIMAL |
+| chargeableWeight | DECIMAL |
+| packageCount | INTEGER |
+| declaredValue | DECIMAL |
+| declaredValueCurrency | CHAR(3) |
+| shippingCost | DECIMAL |
+| currency | CHAR(3) |
+| paymentMethod | ENUM |
+| paymentStatus | ENUM |
+| shipmentStatus | ENUM |
+| estimatedDeliveryDate | DATE |
+| createdBy | UUID |
+| createdAt | TIMESTAMP |
+| updatedAt | TIMESTAMP |
+
+Additional fields for international shipments:
+
+- customsStatus
+- customsReference
+- customsValue
+- customsCurrency
+- customsClearanceNotes
+- incoterm
+- exportCountry
+- importCountry
+
+Sensitive receiver information must never be exposed through the public tracking API.
+
+## 4.4 Database Design Standards
+
+1. UUID primary keys.
+2. Foreign key constraints.
+3. Unique tracking numbers.
+4. Indexed tracking numbers.
+5. DECIMAL for financial values.
+6. ISO 4217 currency codes.
+7. UTC timestamps stored in the database.
+8. Explicit local timezone configuration per branch.
+9. Soft deletion where appropriate.
+10. Immutable shipment event history.
+11. Database transactions for financial and shipment operations.
+12. Proper indexes on frequently queried fields.
+
+Financial amounts must retain their original currency and exchange-rate snapshot. Currency conversion must never silently change the original transaction amount.
+
+# 5. Shipment Management and Tracking
+
+## 5.1 Tracking Number
+
+Automatically generate unique tracking numbers using:
+
+`BBLX-XXXXXX`
+
+The system must guarantee uniqueness even when multiple employees create shipments simultaneously.
+
+## 5.2 Shipment Lifecycle
+
+Initial shipment statuses:
+
+| Status | Description |
+|---|---|
+| CREATED | Shipment created |
+| PICKED_UP | Collected from sender |
+| AT_ORIGIN_HUB | Arrived at origin hub |
+| IN_TRANSIT | Moving between locations |
+| AT_DESTINATION_HUB | Arrived at destination hub |
+| CUSTOMS_CLEARANCE | Under customs processing |
+| OUT_FOR_DELIVERY | Assigned for delivery |
+| DELIVERED | Successfully delivered |
+| ON_HOLD | Temporarily held |
+| DELIVERY_FAILED | Delivery unsuccessful |
+| RETURNED | Returned to sender |
+| CANCELLED | Shipment cancelled |
+
+Not every status applies to every shipment type. Valid status transitions must be controlled by backend business rules.
+
+## 5.3 Tracking Event Requirements
+
+Every event must include:
+
+- Shipment ID.
+- Event status.
+- Location.
+- Branch or hub ID, when applicable.
+- Event timestamp.
+- Employee or driver ID.
+- Notes.
+- Public visibility flag.
+
+Tracking events must be append-only. Corrections should create an auditable correction record rather than silently deleting previous events.
+
+## 5.4 Public Tracking
+
+Customers can track shipments using their tracking number.
+
+Public tracking will show:
+
+- Tracking number.
+- Shipment type.
+- Current status.
+- Origin and destination cities.
+- Shipment timeline.
+- Last known tracking location.
+- Estimated delivery date when available.
+
+Private details such as receiver phone, complete address, personal information and financial records must remain hidden.
+
+# 6. Pricing Engine
+
+The pricing engine must support both domestic and international shipping.
+
+Pricing rules may depend on:
+
+- Origin country.
+- Destination country.
+- Origin city.
+- Destination city.
+- Shipping service.
+- Actual weight.
+- Volumetric weight.
+- Chargeable weight.
+- Shipment dimensions.
+- Distance or shipping zone.
+- Merchant contract.
+- Additional services.
+
+## 6.1 Weight Calculation
+
+Volumetric weight formula:
+
+`Length × Width × Height / Divisor`
+
+The divisor must be configurable by service and transport method.
+
+Chargeable weight:
+
+`MAX(Actual Weight, Volumetric Weight)`
+
+## 6.2 Pricing Examples
+
+- Domestic delivery: based on weight and delivery zone.
+- International air: based on chargeable weight.
+- Sea shipping: based on CBM or agreed freight pricing.
+- Express shipping: based on service level and weight.
+
+The public quotation calculator and internal shipment creation must use the same pricing engine.
+
+A confirmed quotation must preserve the price and currency used when it was generated.
+
+# 7. Financial and Payment Management
+
+## 7.1 Supported Payment Methods
+
+- CASH
+- COD
+- BANK_TRANSFER
+- MOBILE_MONEY
+
+Visa and Mastercard are not included in the initial approved payment scope.
+
+## 7.2 Important Financial Distinction
+
+The system must separate:
+
+**Shipping Charges:** The amount owed for the shipping service.
+
+**COD Amount:** The value collected from the receiver on behalf of the sender or merchant.
+
+These must not be combined into one financial amount.
+
+Example:
+
+- Shipping fee: USD 15
+- COD amount: USD 100
+- Total collected from receiver: USD 115
+
+The system must record USD 15 as the shipping charge and USD 100 as COD collection, with separate financial allocations and settlement records.
+
+## 7.3 Multi-Currency Support
+
+Supported initial currencies:
+
+- USD
+- UGX
+- SDG
+- AED
+
+The system must allow additional currencies through configuration.
+
+Each financial transaction must store:
+
+- Amount.
+- Currency.
+- Exchange rate, if converted.
+- Base currency equivalent, if applicable.
+- Transaction date.
+- Branch.
+- Payment method.
+- Reference number.
+- Recorded by.
+- Verification status.
+
+## 7.4 Payment Verification
+
+Bank transfers and mobile-money transactions may initially be recorded manually.
+
+The system should support:
+
+- Transaction reference.
+- Payment proof upload.
+- Verification by authorized accountant.
+- Approved or rejected status.
+- Audit history.
+
+# 8. Branch and Driver Management
+
+## 8.1 Branch Management
+
+Administrators can:
+
+- Create branches.
+- Edit branch information.
+- Assign managers.
+- Assign employees.
+- View branch shipments.
+- View branch financial reports.
+- Manage incoming and outgoing shipments.
+
+## 8.2 Driver Management
+
+Drivers can be assigned delivery tasks.
+
+The system must support:
+
+- Daily delivery assignments.
+- Shipment scanning.
+- Delivery confirmation.
+- Failed delivery reasons.
+- Proof of delivery.
+- COD collection records.
+- Driver performance reports.
+
+Delivery confirmation must record the driver, time, shipment and evidence where required.
+
+# 9. Documents and Printing
+
+All initial shipping documents will be generated in English.
+
+Supported documents:
+
+1. Shipping Waybill.
+2. Shipping Label.
+3. Commercial Invoice.
+4. Payment Receipt.
+5. Delivery Receipt.
+6. Customer Account Statement.
+
+Documents must contain the Bublix logo, shipment reference, relevant customer information, applicable charges and currency.
+
+Barcode standard: Code128.
+
+QR Code content should use a secure tracking URL, not expose personal customer information.
+
+# 10. Notifications
+
+Notification channels:
+
+- Email.
+- WhatsApp.
+- SMS.
+
+Initial notification triggers:
+
+- Shipment created.
+- Shipment picked up.
+- Shipment in transit.
+- Arrived at destination.
+- Out for delivery.
+- Delivered.
+- Delivery failed.
+- Shipment placed on hold.
+
+Notification failures must be logged and retried without blocking the shipment transaction.
+
+# 11. Authentication and Authorization
+
+Roles:
+
+- SUPER_ADMIN
+- ADMIN
+- BRANCH_MANAGER
+- STAFF
+- ACCOUNTANT
+- DRIVER
+- MERCHANT
+- CUSTOMER
+
+Use role-based and permission-based access control.
+
+Branch-level data access must be enforced by the backend.
+
+Users must not be able to access another branch's records or another merchant's shipments unless explicitly authorized.
+
+Security requirements:
+
+- Secure password hashing.
+- JWT access tokens.
+- Refresh-token rotation.
+- Session revocation.
+- Rate limiting.
+- Input validation.
+- CORS restrictions.
+- Security headers.
+- Audit logging.
+- Secure file access.
+- Protection against IDOR and unauthorized resource access.
+
+# 12. API Architecture
+
+Base URL:
+
+`https://api.bublixshipping.com/api/v1`
+
+All API endpoints must be versioned.
+
+API responses must use consistent JSON structures.
+
+Example success response:
+
+```json
+{
+  "success": true,
+  "message": "Shipment created successfully",
+  "data": {
+    "trackingNumber": "BBLX-123456"
+  }
+}
+```
+
+Example error response:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "receiverPhone",
+      "message": "Receiver phone is required"
+    }
+  ]
+}
+```
+
+# 13. Future Mobile Application Readiness
+
+Flutter applications will be developed in a later phase.
+
+The existing API must support:
+
+**Driver App**
+- Login.
+- Assigned delivery tasks.
+- QR scanning.
+- Shipment status updates.
+- Delivery confirmation.
+- COD collection reporting.
+
+**Customer / Merchant App**
+- Account management.
+- Shipment creation.
+- Shipment tracking.
+- Notifications.
+- Invoice downloads.
+- Payment history.
+
+No separate business logic should be implemented exclusively in the mobile applications. The central API must remain the source of truth.
+
+# 14. Railway Deployment Architecture
+
+Recommended Railway services:
+
+1. Public Website.
+2. Admin Dashboard.
+3. Backend API.
+4. PostgreSQL.
+5. Redis, when background jobs are introduced.
+
+Domains:
+
+- `bublixshipping.com`
+- `www.bublixshipping.com`
+- `admin.bublixshipping.com`
+- `api.bublixshipping.com`
+
+Deployment requirements:
+
+- GitHub integration.
+- Automatic deployment.
+- Environment variables.
+- SSL.
+- Database backups.
+- Migration execution before application rollout.
+- Health checks.
+- Application logs.
+- Error monitoring.
+- Production/staging separation.
+
+Database migrations must be backward-compatible where possible and must not automatically destroy production data.
+
+# 15. Testing and Quality Assurance
+
+Testing must include:
+
+- Unit Tests.
+- API Integration Tests.
+- Database Migration Tests.
+- Authentication Tests.
+- Authorization Tests.
+- Shipment Lifecycle Tests.
+- Pricing Calculation Tests.
+- Multi-Currency Tests.
+- COD Settlement Tests.
+- Public Tracking Privacy Tests.
+- Performance Tests.
+- Security Tests.
+- Arabic RTL and English LTR UI Tests.
+
+Critical business transactions must be tested for concurrent requests and duplicate submissions.
+
+# 16. Implementation Roadmap
+
+| Phase | Scope |
+|---|---|
+| Phase 1 | Architecture, database, authentication, permissions |
+| Phase 2 | Branches, customers, shipments, tracking |
+| Phase 3 | Pricing, invoices, payments, COD, currencies |
+| Phase 4 | Drivers, merchants, notifications, reports |
+| Phase 5 | Testing, security, production launch |
+| Phase 6 | Flutter applications and advanced integrations |
+
+# 17. Final Architecture Principles
+
+The following principles are mandatory:
+
+1. API-First Architecture.
+2. Modular Monolith.
+3. Multi-Branch Ready.
+4. Domestic and International Shipping.
+5. Bilingual Arabic and English.
+6. Centralized Pricing Engine.
+7. Multi-Currency Financial Management.
+8. Immutable Tracking History.
+9. Secure Role-Based Access Control.
+10. Database Migrations.
+11. Future Flutter Compatibility.
+12. Scalable Railway Deployment.
+
+**Final Project Objective:**
+
+Build Bublix Shipping as a professional, secure and scalable logistics management platform capable of managing domestic and international shipments, multiple branches, customer accounts, financial transactions and complete shipment tracking through one centralized system.
+# BUBLIX SHIPPING – TECHNICAL DESIGN SPECIFICATION
+
+**Technical Appendix – Version 1.0**
+
+## A. Database Implementation Blueprint
+
+### A.1 Core Entity Design
+
+The following entities form the central data model.
+
+| Entity | Primary Responsibility |
+|---|---|
+| Organizations | Company configuration |
+| Hubs | Branches and warehouses |
+| Users | Authentication accounts |
+| Roles | Access roles |
+| Permissions | Access permissions |
+| Customers | Sender and receiver customer profiles |
+| MerchantProfiles | Business customer details |
+| Shipments | Main shipment entity |
+| ShipmentItems | Individual packages |
+| ShipmentEvents | Tracking timeline |
+| ShipmentAssignments | Branch and driver assignments |
+| ShipmentCharges | Shipping and additional charges |
+| Invoices | Billing documents |
+| Payments | Actual payment transactions |
+| CODCollections | Receiver cash collection |
+| PaymentAllocations | Allocation of payments to invoices |
+| PricingRules | Pricing configurations |
+| CurrencyRates | Currency conversion records |
+| AuditLogs | Security and activity history |
+
+### A.2 Recommended Shipment Structure
+
+The Shipments table must include:
+
+**Identification**
+- id: UUID
+- trackingNumber: Unique string
+- organizationId: UUID
+- shipmentType: DOMESTIC / INTERNATIONAL
+- serviceTypeId: UUID
+
+**Sender**
+- senderCustomerId: UUID
+- senderNameSnapshot: String
+- senderPhoneSnapshot: String
+- senderAddressSnapshot: JSONB
+
+**Receiver**
+- receiverName: String
+- receiverPhone: String
+- receiverEmail: String, optional
+- receiverAddress: JSONB
+
+**Routing**
+- originCountryId: UUID
+- destinationCountryId: UUID
+- originHubId: UUID
+- destinationHubId: UUID
+- currentHubId: UUID, nullable
+
+**Package Information**
+- actualWeight: DECIMAL
+- volumetricWeight: DECIMAL
+- chargeableWeight: DECIMAL
+- totalPieces: INTEGER
+- declaredValue: DECIMAL
+- declaredCurrency: CHAR(3)
+
+**Financial Information**
+- shippingCost: DECIMAL
+- additionalCharges: DECIMAL
+- discountAmount: DECIMAL
+- totalAmount: DECIMAL
+- currency: CHAR(3)
+- paymentMethod: ENUM
+- paymentStatus: ENUM
+- codAmount: DECIMAL
+- codCurrency: CHAR(3)
+
+**Operational Information**
+- shipmentStatus: ENUM
+- estimatedDeliveryDate: DATE
+- specialInstructions: TEXT
+- createdBy: UUID
+- createdAt: TIMESTAMP
+- updatedAt: TIMESTAMP
+
+Sender and receiver snapshots preserve the original shipment information even if the customer's saved profile changes later.
+
+### A.3 Important Design Rules
+
+1. Store each shipment package separately in ShipmentItems.
+2. Store every tracking movement in ShipmentEvents.
+3. Never overwrite historical shipment events.
+4. Keep shipment charges separate from payments.
+5. Keep COD collections separate from shipping revenue.
+6. Keep exchange rates associated with the actual transaction.
+7. Use database transactions for shipment creation, invoice creation and payment recording.
+8. Use unique constraints for tracking numbers and invoice numbers.
+9. Add indexes on trackingNumber, shipmentStatus, originHubId, destinationHubId and createdAt.
+10. Use a consistent organizationId for company-owned records.
+
+### A.4 Migration Execution Order
+
+Recommended Sequelize CLI migration sequence:
+
+1. create-organizations
+2. create-countries
+3. create-cities
+4. create-hubs
+5. create-users
+6. create-roles
+7. create-permissions
+8. create-user-roles
+9. create-role-permissions
+10. create-customers
+11. create-merchant-profiles
+12. create-customer-addresses
+13. create-shipping-services
+14. create-shipping-routes
+15. create-shipping-zones
+16. create-pricing-rules
+17. create-currency-rates
+18. create-shipments
+19. create-shipment-items
+20. create-shipment-events
+21. create-shipment-assignments
+22. create-shipment-charges
+23. create-invoices
+24. create-payments
+25. create-payment-allocations
+26. create-cod-collections
+27. create-shipment-documents
+28. create-delivery-proofs
+29. create-notifications
+30. create-audit-logs
+
+Additional supporting tables should be added as the corresponding modules are implemented.
+
+---
+
+# B. REST API ENDPOINT SPECIFICATION
+
+**Base URL:**
+
+`https://api.bublixshipping.com/api/v1`
+
+All endpoints use JSON unless a file upload or document download is required.
+
+## B.1 Authentication API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /auth/login | User login |
+| POST | /auth/logout | Logout |
+| POST | /auth/refresh | Refresh access token |
+| POST | /auth/forgot-password | Password recovery |
+| POST | /auth/reset-password | Reset password |
+| GET | /auth/me | Current user profile |
+| POST | /auth/change-password | Change password |
+
+## B.2 User and Permission API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /users | List users |
+| POST | /users | Create user |
+| GET | /users/:id | User details |
+| PATCH | /users/:id | Update user |
+| PATCH | /users/:id/status | Activate/deactivate user |
+| GET | /roles | List roles |
+| POST | /roles | Create role |
+| PATCH | /roles/:id | Update role |
+| GET | /permissions | List permissions |
+
+## B.3 Branch Management API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /hubs | List branches |
+| POST | /hubs | Create branch |
+| GET | /hubs/:id | Branch details |
+| PATCH | /hubs/:id | Update branch |
+| GET | /hubs/:id/shipments | Branch shipments |
+| GET | /hubs/:id/reports | Branch reports |
+
+## B.4 Customer and Merchant API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /customers | List customers |
+| POST | /customers | Create customer |
+| GET | /customers/:id | Customer details |
+| PATCH | /customers/:id | Update customer |
+| GET | /merchants | List merchants |
+| POST | /merchants | Create merchant |
+| GET | /merchants/:id/shipments | Merchant shipments |
+| GET | /merchants/:id/invoices | Merchant invoices |
+| GET | /merchants/:id/statements | Account statements |
+
+## B.5 Shipment API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /shipments | List shipments |
+| POST | /shipments | Create shipment |
+| GET | /shipments/:id | Shipment details |
+| PATCH | /shipments/:id | Update shipment |
+| POST | /shipments/:id/cancel | Cancel shipment |
+| POST | /shipments/:id/pickup | Confirm pickup |
+| POST | /shipments/:id/assign | Assign shipment |
+| POST | /shipments/:id/transfer | Transfer between hubs |
+| POST | /shipments/:id/events | Add tracking event |
+| GET | /shipments/:id/events | Shipment event history |
+| POST | /shipments/:id/deliver | Confirm delivery |
+| POST | /shipments/:id/fail-delivery | Record failed delivery |
+| POST | /shipments/bulk | Bulk shipment creation |
+| POST | /shipments/import | Import Excel shipments |
+
+## B.6 Public Tracking API
+
+These endpoints must not require authentication.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /tracking/:trackingNumber | Public tracking information |
+
+Public tracking must expose only approved fields.
+
+Implement rate limiting and optional CAPTCHA protection for suspicious traffic.
+
+## B.7 Pricing API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /services | Available shipping services |
+| POST | /quotes | Calculate shipping quotation |
+| GET | /quotes/:id | Quotation details |
+| POST | /pricing/rules | Create pricing rule |
+| GET | /pricing/rules | List pricing rules |
+| PATCH | /pricing/rules/:id | Update pricing rule |
+| GET | /currencies | Available currencies |
+| GET | /currency-rates | Exchange rates |
+
+## B.8 Finance API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /invoices | List invoices |
+| POST | /invoices | Create invoice |
+| GET | /invoices/:id | Invoice details |
+| GET | /invoices/:id/pdf | Download invoice |
+| GET | /payments | List payments |
+| POST | /payments | Record payment |
+| POST | /payments/:id/verify | Verify payment |
+| GET | /cod-collections | List COD collections |
+| POST | /cod-collections | Record COD collection |
+| POST | /cod-collections/:id/settle | Settle COD |
+| GET | /finance/transactions | Financial transactions |
+| GET | /finance/reports | Financial reports |
+
+## B.9 Driver and Delivery API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /drivers | List drivers |
+| POST | /drivers | Create driver |
+| GET | /drivers/:id/tasks | Driver assignments |
+| POST | /drivers/:id/assignments | Assign delivery |
+| POST | /deliveries/:id/scan | Scan shipment |
+| POST | /deliveries/:id/confirm | Confirm delivery |
+| POST | /deliveries/:id/fail | Failed delivery |
+| POST | /deliveries/:id/proof | Upload delivery proof |
+
+## B.10 Documents API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /documents/waybill/:shipmentId | Generate waybill |
+| POST | /documents/label/:shipmentId | Generate label |
+| POST | /documents/commercial-invoice/:shipmentId | Generate commercial invoice |
+| GET | /documents/:id/download | Download document |
+| GET | /shipments/:id/documents | Shipment documents |
+
+## B.11 Notifications API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /notifications | List notifications |
+| POST | /notifications/send | Send notification |
+| GET | /notifications/templates | List templates |
+| POST | /notifications/templates | Create template |
+| GET | /notifications/logs | Notification history |
+
+## B.12 Reports API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /reports/dashboard | Main dashboard |
+| GET | /reports/shipments | Shipment reports |
+| GET | /reports/revenue | Revenue reports |
+| GET | /reports/branches | Branch reports |
+| GET | /reports/drivers | Driver performance |
+| GET | /reports/cod | COD reports |
+| GET | /reports/customers | Customer reports |
+
+---
+
+# C. API ENGINEERING STANDARDS
+
+## C.1 Pagination
+
+All list endpoints must support:
+
+- page
+- limit
+- search
+- sortBy
+- sortOrder
+- status
+- startDate
+- endDate
+
+## C.2 Authentication
+
+All private endpoints require a valid access token.
+
+Authorization must be checked at the backend service layer.
+
+## C.3 Idempotency
+
+Financial and shipment creation endpoints should support an Idempotency-Key header to prevent duplicate operations when clients retry requests.
+
+## C.4 Shipment Creation Transaction
+
+Shipment creation must execute as a single logical database transaction:
+
+1. Validate sender and receiver.
+2. Validate origin and destination.
+3. Calculate pricing.
+4. Generate unique tracking number.
+5. Create shipment.
+6. Create shipment items.
+7. Create initial tracking event.
+8. Generate invoice when applicable.
+9. Commit database transaction.
+
+External notifications and PDF generation should be handled after successful database commit through background jobs.
+
+## C.5 Tracking Event Transaction
+
+When updating a shipment:
+
+1. Verify user authorization.
+2. Validate the permitted status transition.
+3. Update the current shipment status.
+4. Insert a new ShipmentEvent.
+5. Record the acting user.
+6. Commit transaction.
+7. Trigger notification asynchronously.
+
+## C.6 Financial Transaction Rules
+
+- Payments must be independently recorded.
+- COD collections must be independently recorded.
+- Payment verification must be auditable.
+- Settlement must be traceable.
+- Financial records must not be silently deleted.
+- Refunds and reversals must be recorded as separate transactions.
+
+## C.7 API Documentation
+
+Use OpenAPI 3.1 / Swagger.
+
+The API documentation must include:
+
+- Authentication requirements.
+- Endpoint descriptions.
+- Request schemas.
+- Response schemas.
+- Validation errors.
+- Permission requirements.
+- Example requests.
+- Example responses.
+
+Swagger should be available in the development environment and restricted appropriately in production.
+
+---
+
+# D. DEVELOPMENT ACCEPTANCE CRITERIA
+
+The technical implementation will be considered ready for the first production release when:
+
+1. Users can securely log in.
+2. Administrators can create and manage shipments.
+3. The system supports domestic and international shipments.
+4. Tracking numbers are unique.
+5. Shipment events are saved permanently.
+6. Public tracking works without revealing private data.
+7. Branch architecture supports future expansion.
+8. Pricing calculations are consistent.
+9. Invoices support the configured currencies.
+10. Cash, bank transfer, mobile money and COD are supported.
+11. COD and shipping revenue are correctly separated.
+12. Waybills can be generated in English.
+13. Arabic and English interfaces work correctly.
+14. User permissions are enforced.
+15. Database migrations can be deployed safely.
+16. Backups and recovery procedures are tested.
+17. Core APIs are documented and tested.
+
+**End of Technical Design Specification.**
+بالتأكيد. وبصراحة، عندي ليك مجموعة اقتراحات مهمة جداً قبل ما تبدأ تنفيذ
+
+ **Bublix Shipping Global Logistics Platform**.
+
+راجعت وثيقة الـ SRD كاملة، ورأيي إنك ما مفروض تتعامل مع المشروع كمجرد موقع إلكتروني فيه خدمة تتبع شحنات؛ الأفضل تبنيه كنظام إدارة شركات شحن متكامل (Logistics Management System)، قابل للتوسع والعمل في أكثر من دولة وفرع.
+
+الهوية البصرية ممتازة، والـ Tech Stack مناسب. لكن في نقاط معمارية ووظيفية أنصحك تضيفها الآن، لأنها لو اتأخرت حتكون مكلفة في إعادة البرمجة.
+
+# **1. أهم 10 إضافات أنصح بها**
+
+## **1. نظام إدارة الفروع المتعددة Multi-Branch**
+
+أولوية عالية جداً
+
+ما تخلي الفرع مجرد اسم وموقع. كل فرع لازم يكون عنده:
+
+- مدير فرع وموظفون.
+- مخزون شحنات داخلة وخارجة.
+- الشحنات الموجودة حالياً في الفرع.
+- الشحنات المحولة إلى فروع أخرى.
+- الإيرادات والمصروفات.
+- تقارير الأداء اليومية والشهرية.
+
+والأهم: الموظف في فرع Kampala ما مفروض يشوف أو يعدّل بيانات فرع آخر إلا حسب صلاحياته.
+
+## **2. نظام تتبع متقدم للشحنات**
+
+أولوية عالية جداً
+
+أنصحك تضيف حالات أكثر تفصيلاً من الحالات الأساسية الموجودة حالياً.
+
+**مثال لدورة حياة الشحنة**
+
+1. **CREATED**
+
+   تم إنشاء الشحنة
+2. **PICKED_UP**
+
+   تم استلام الشحنة من المرسل
+3. **AT_ORIGIN_HUB**
+
+   وصلت إلى مخزن الإرسال
+4. **IN_TRANSIT**
+
+   في طريقها إلى الوجهة
+5. **AT_DESTINATION_HUB**
+
+   وصلت إلى مخزن الوجهة
+6. **OUT_FOR_DELIVERY**
+
+   خرجت مع مندوب التوصيل
+7. **DELIVERED**
+
+   تم التسليم بنجاح
+
+حالات استثنائية:
+
+- ON_HOLD
+- CUSTOMS_CLEARANCE
+- DELIVERY_FAILED
+- RETURNED
+- CANCELLED
+
+**اقتراحي:** لا تسمح بتغيير حالة الشحنة بدون تسجيل حدث جديد في ShipmentEvents، مع اسم الموظف والفرع والتاريخ والوقت والملاحظات.
+
+## **3. نظام إدارة الأسعار والتسعير**
+
+دي نقطة مهمة جداً ومفقودة من الوثيقة.
+
+أضف Pricing Engine يسمح للإدارة بتحديد:
+
+- سعر الشحن حسب الدولة.
+- سعر الشحن حسب المدينة.
+- سعر الكيلوغرام.
+- الوزن الحجمي Volumetric Weight.
+- الشحن الجوي أو البري أو البحري.
+- رسوم إضافية مثل التخليص الجمركي والتوصيل.
+- أسعار خاصة للعملاء التجاريين.
+
+مثلاً:
+
+| الخدمة           | طريقة التسعير     |
+| ---------------- | ----------------- |
+| Air Shipping     | حسب الوزن         |
+| Sea Shipping     | حسب الحجم CBM     |
+| Express Delivery | حسب الوزن والسرعة |
+| Local Delivery   | حسب المنطقة       |
+
+ويكون عندك حاسبة أسعار في الموقع مرتبطة بنفس محرك التسعير، وليس حاسبة منفصلة بأسعار ثابتة.
+
+## **4. نظام إدارة المناديب Drivers Management**
+
+لا تكتفِ بإنشاء حساب للمندوب.
+
+أضف:
+
+- تعيين الشحنات للمندوب.
+- قائمة مهام التوصيل اليومية.
+- إثبات التسليم Proof of Delivery.
+- صورة توقيع المستلم.
+- صورة إثبات التسليم عند الحاجة.
+- تسجيل المبالغ التي جمعها المندوب.
+- تقارير نجاح وفشل عمليات التوصيل.
+
+## **5. نظام الإشعارات Notifications**
+
+[AI Phone Agent for Logistics](https://images.openai.com/static-rsc-4/gjtzNYdwge1QRfUMYQtHwkRKHayQKuLBL1QtyfkD0zd80N78g_4X3UY6l2NwoBtAFfKPw1qAezSycwSkyMLHTrehRdgHiJL2PjliuwY-d_v2KCfPu-DPCvP9bvHfmcZDsu-T-yZX6bePh1A47tWicszqNiFzQm7jwmSafYdXGJA?purpose=inline)
+
+[Delivery Management Software | NowGo by Shippit](https://images.openai.com/static-rsc-4/9UMX_uyS7KjW14wfRxlHo2079j82qxIfl7sFxjxJ-oiFpO6-8x239fsTd3xv7Ts05dUd2ecF3mrCVYkfTtIAgpOtSpWnh2E9ugtXv4WBAXg1m753nsecbxjwx7oSTe1oTSs7f_WF9_EM0ML5n8NvyNldivDF2CWn79GDxvUKtww?purpose=inline)
+
+[AxleHire expands last-mile delivery services in the Northeast | DC Velocity | The Supply Chain Xchange](https://images.openai.com/static-rsc-4/BgJfeZZX5rihok948dg6g_MdkjHl-VF_v1Sjw0D34AdjM7N4K9B8H2MU-ZsY5ylKaJah-sB9xkuSIRq4_jMW64TXI1avpPQfQlU4tLB5v5cvYPwunv-O8p7aebPpKZLmFzMTC28ZVBu1zz_HkL6jbZA2GbJ1wVdSd_wbloklB4A?purpose=inline)
+
+12
+
+أنصح بدعم:
+
+- Email.
+- WhatsApp.
+- SMS.
+- Push Notifications مستقبلاً.
+
+مثلاً عند انتقال الشحنة إلى `OUT_FOR_DELIVERY`، يصل للعميل إشعار تلقائي بأن الشحنة في طريقها إليه.
+
+ويفضل وجود Notification Queue حتى لا تتوقف عملية إنشاء الشحنة لو فشل إرسال رسالة.
+
+## **6. نظام صلاحيات متقدم RBAC**
+
+الأدوار الأربعة الحالية غير كافية لنظام بهذا الحجم.
+
+أقترح:
+
+| الدور          | الصلاحيات                  |
+| -------------- | -------------------------- |
+| SUPER_ADMIN    | كامل النظام                |
+| ADMIN          | الإدارة العامة             |
+| BRANCH_MANAGER | إدارة فرعه                 |
+| STAFF          | عمليات الشحن               |
+| ACCOUNTANT     | الحسابات والتقارير المالية |
+| DRIVER         | مهام التوصيل               |
+| MERCHANT       | شحنات شركته                |
+| CUSTOMER       | تتبع شحناته                |
+
+مع صلاحيات مستقلة لكل عملية: Create, Read, Update, Delete, Approve.
+
+## **7. لوحة تحكم Analytics Dashboard**
+
+[RouteX - Shipping Dashboard by Nija Design for Nija Works on Dribbble](https://images.openai.com/static-rsc-4/DAaxoQ9kjnu6QM-F8p_k12J2N9nxFjEuP-5qotLkvQJswNt6sNjqbaO-DJHnOGBvxE0EODww3fq9tbgsMq8jbbI9CYXKZ1pYROdXt0RODa5tJXbEeqAV4JvqB51mTMKeeBAbYC3wqaZzwsXkKiR5Xmc4HIJm75Tygdjb-fCQ6kQ?purpose=inline)
+
+[Smart Logistics Dashboard — Orbit UI by Yogita Janmejay on Dribbble](https://images.openai.com/static-rsc-4/bR-zwTQ57_zIFnHGmy2bgzrYjzk_1LOPT9TS26P9jnvDVGc62WofX-3BqPToqQB359EZmVk0fY434OnZkdqNnhHYADikGqx4HTtFTwC_FCEr4fYtC811Jpr91ML1Nn5-RHiinFIwwC_LUMx8GN8NIQRB3p4KYAMDwPXQuHbp5aI?purpose=inline)
+
+[CargoPulse — Shipping Management Dashboard by Vektora UIUX for Vektora on Dribbble](https://images.openai.com/static-rsc-4/6OhT7lUaLTtozYbQfSojGut7PbDpHxhQA5flqRGJ7SUiTPaZ0jOsdUTYgTLYzWDnckZ5J4xhdPJEWDQ0FEfWFznFK2VZHzG6jj_NwWj9n7wnlAV_zC2QyU5BVGbRBQWa7Pv5U1CtNpQbcekOneY1RQTfsACVGTU0TX887FDfXMU?purpose=inline)
+
+12
+
+لازم لوحة الإدارة تعرض معلومات مباشرة مثل:
+
+- إجمالي الشحنات اليوم.
+- الشحنات قيد النقل.
+- الشحنات التي تم تسليمها.
+- الشحنات المتأخرة.
+- الإيرادات اليومية والشهرية.
+- المبالغ المستحقة COD.
+- أفضل الفروع أداءً.
+- أداء المناديب.
+
+## **8. نظام العملاء التجاريين Merchants Portal**
+
+دي ميزة ممكن تميز Bublix عن شركات الشحن التقليدية.
+
+كل شركة أو تاجر يكون عنده حساب خاص يستطيع من خلاله:
+
+- إنشاء شحنات متعددة.
+- رفع Excel لإنشاء شحنات بالجملة.
+- متابعة جميع شحناته.
+- تحميل الفواتير.
+- مشاهدة كشف حسابه.
+- طلب استلام الشحنات من موقعه.
+- الوصول إلى API خاص به مستقبلاً.
+
+## **9. نظام المستندات والطباعة**
+
+أنصح بأن يكون عندك Document Management Module يدير:
+
+- Waybill.
+- Commercial Invoice.
+- Shipping Label.
+- Delivery Receipt.
+- Payment Receipt.
+- Monthly Statement.
+
+كل مستند يحمل رقم مرجعي، وتاريخ الإصدار، والعملة، والشعار، وQR وBarcode حسب نوع المستند.
+
+## **10. سجل التدقيق Audit Logs**
+
+أي عملية مهمة لازم تكون قابلة للمراجعة:
+
+- من أنشأ الشحنة؟
+- من غيّر سعرها؟
+- من عدّل بيانات العميل؟
+- من أكد التسليم؟
+- من استلم مبلغ COD؟
+- متى حصل التعديل؟
+
+ولا تسمح بحذف الأحداث المالية أو أحداث التتبع من السجل.
+
+# **2. أهم تعديل على قاعدة البيانات PostgreSQL**
+
+في الوثيقة الحالية عندك 4 جداول رئيسية فقط. أنصحك ما تبدأ بالـ Migrations قبل توسيع قاعدة البيانات.
+
+أقترح الهيكلة التالية:
+
+**Core Database Architecture**
+
+**Organization / Company**
+
+إعدادات الشركة والدول والعملات
+
+**Hubs**
+
+الفروع والمخازن
+
+**Users & Roles**
+
+المستخدمون والصلاحيات
+
+**Customers**
+
+العملاء والتجار
+
+**Drivers**
+
+المناديب
+
+**Shipments**
+
+الجدول المركزي للشحنات
+
+ShipmentEvents
+
+ShipmentItems
+
+ShipmentAssignments
+
+ShipmentPayments
+
+ShipmentDocuments
+
+ShipmentCharges
+
+PricingRules
+
+Notifications
+
+AuditLogs
+
+Invoices
+
+CurrencyRates
+
+DeliveryProofs
+
+هذه ليست كل الجداول بالضرورة، لكنها بداية أفضل بكثير من حصر النظام في أربعة جداول.
+
+**ملاحظات تقنية مهمة:**
+
+1. استخدم UUID للمفاتيح الأساسية.
+2. استخدم DECIMAL للمبالغ المالية، وليس FLOAT.
+3. أضف `createdAt`, `updatedAt` وحقول الحذف المنطقي عند الحاجة.
+4. احتفظ بالعملة الأصلية لكل عملية مالية.
+5. استخدم Database Transactions في العمليات المترابطة.
+6. أضف Unique Constraints لأرقام التتبع وأرقام الفواتير.
+7. لا تخزن سعر الصرف الحالي فقط؛ احتفظ بسعر الصرف المستخدم وقت المعاملة.
+
+# **3. اقتراحي لبنية المشروع التقنية**
+
+أنا أنصحك تختار بنية واضحة من البداية:
+
+## **Bublix Platform Architecture**
+
+**Frontend Applications**
+
+**Public Website**
+
+Next.js
+
+**Admin Dashboard**
+
+Next.js
+
+HTTPS / REST API
+
+**Backend API**
+
+# **Node.js + Express.js**
+
+Authentication · RBAC · Business Logic · Validation
+
+**PostgreSQL**
+
+Sequelize ORM
+
+**Redis**
+
+Cache & Queue
+
+**External Services**
+
+WhatsApp · Email · SMS · Cloudinary/S3 · PDF Generation
+
+**Railway Cloud Infrastructure**
+
+### **ملاحظاتي على هذه البنية**
+
+- اختار Next.js للموقع ولوحة التحكم بدلاً من الجمع العشوائي بين React وNext.js.
+- استخدم Modular Monolith في البداية، وليس Microservices. أسهل في التطوير والصيانة، ويمكن تقسيم الخدمات لاحقاً.
+- Redis يكون اختيارياً في أول نسخة، لكن مفيد للـ Background Jobs والـ Caching.
+- استخدم S3-compatible storage أو Cloudinary للمستندات والصور، ولا تخزن الملفات الكبيرة داخل PostgreSQL.
+- افصل API وFrontend وAdmin كخدمات نشر مستقلة على Railway إذا كان ذلك مناسباً للميزانية.
+
+# **4. تحسينات أمنية لا أنصح بالتنازل عنها**
+
+ضرورية قبل الإطلاق
+
+هناك تفاصيل إضافية أريد إضافتها:
+
+- Refresh Tokens مع إمكانية إلغاء الجلسات.
+- تشفير كلمات المرور باستخدام Argon2 أو bcrypt.
+- حماية من Brute Force وRate Limiting.
+- التحقق من الصلاحيات في Backend وليس فقط إخفاء الأزرار في الواجهة.
+- حماية بيانات العملاء والهواتف والعناوين.
+- نسخ احتياطي تلقائي لقاعدة البيانات واختبار استعادة النسخ.
+- عدم تشغيل Migrations بشكل أعمى في كل Deploy؛ استخدم Release/Pre-deploy step مع التحقق من نجاح Migration قبل تشغيل النسخة الجديدة.
+- عدم السماح بتعديل سجل التتبع التاريخي دون سجل تدقيق.
+
+# **5. كيف أقترح تنفيذ المشروع؟**
+
+لا أنصح ببناء كل شيء مرة واحدة. أقترح خمس مراحل:
+
+1. **Phase 1 – Foundation**
+
+   ابدأ بها
+   - إعداد GitHub Repository.
+   - إعداد Railway.
+   - PostgreSQL وSequelize.
+   - Migrations وDatabase Relationships.
+   - Authentication وRBAC.
+   - إعداد الهوية البصرية ومكونات UI.
+2. **Phase 2 – Core Shipping System**
+   - إنشاء الشحنات.
+   - أرقام التتبع.
+   - إدارة الفروع.
+   - دورة حياة الشحنة.
+   - Waybill وBarcode وQR.
+   - محرك التسعير.
+3. **Phase 3 – Financial System**
+   - العملات المتعددة.
+   - الفواتير.
+   - COD.
+   - حسابات الشركات.
+   - تقارير الفروع والمناديب.
+4. **Phase 4 – Advanced Features**
+   - Drivers Management.
+   - Merchants Portal.
+   - Notifications.
+   - Analytics.
+   - إثبات التسليم.
+5. **Phase 5 – Testing & Launch**
+   - Unit Testing.
+   - API Integration Testing.
+   - Security Testing.
+   - User Acceptance Testing.
+   - ربط الدومينات وSSL.
+   - Production Deployment.
+
+# **6. اقتراحات إضافية للواجهة وتجربة المستخدم**
+
+[Skyline Cargo - Shipping & Logistics Landing Page by Arthuur on Dribbble](https://images.openai.com/static-rsc-4/Kci5aT_Ry7q8FM-nAk4I-34l5QA7NDoAZYXYuo-oPApLJxEyTVL0NcW0d54u2l8nSRgElOjMtiHfbm6NuyjVBjiqrppbMD3dtcVsKF37DhyeZrnaGUZGGuwqll3sNS8PQdhGLXkKpQi4MRPP5izMN6AzSsHhHf2R5vH0NufMBeY?purpose=inline)
+
+[Freight & Cargo Professional Website Template](https://images.openai.com/static-rsc-4/IqtXuyXIQDWL_0gpivaJmKuzpgXWLTLoR6OA10NPs97kR-QLTd-7A7-YoyS9jAGflrb-U6Y1_dQzxBA4LgVj4ONFeilE871a6U0-elZe9Vf1ea82uba-ZHjiY1snsfzGG5vG0xQQO80TLLNDTl_lZedvRB52KYkUZoS9_o7Tj1c?purpose=inline)
+
+[LogiTrack Dashboard — built with AI on Blink](https://images.openai.com/static-rsc-4/R7zTxiulclGr0VLiOp9gcR-nk-lkqldMu728_A7wDf7OhLO_mTieLOb1pAJNSxxhRiiiTR3gp7Cpk9FWYY7lthdjzlCUvlrCopWaBjSmrNpQaPGQfvA9qI0MbVSsYpk1_ABKPwp86LsCwysVmdKQZJQWCn9dYAPo0GH4nq1tg-8?purpose=inline)
+
+13
+
+أريد أن تكون تجربة الموقع بهذا الشكل:
+
+- تصميم عالمي Minimal وPremium.
+- واجهة بالإنجليزية في البداية، مع دعم العربية لاحقاً.
+- دعم RTL وLTR من البداية في نظام التصميم.
+- Mobile First.
+- صفحة رئيسية قوية فيها Tracking Search واضح.
+- صفحة تتبع مستقلة تعرض خريطة ومراحل الشحنة.
+- صفحة Services.
+- صفحة Locations.
+- صفحة About Us.
+- صفحة Contact Us.
+- صفحة Get a Quote.
+
+وفي لوحة الإدارة استخدم Sidebar بترولي، وبطاقات بيضاء، ولمسات ذهبية، مع جداول احترافية وسهلة الاستخدام.
+
+# **7. قبل اعتماد النسخة النهائية، عندي 5 قرارات مهمة**
+
+دي النقاط التي أريد حسمها معاك حتى ما نبني النظام على افتراضات خاطئة.
+
+**1. طبيعة عمل Bublix Shipping**
+
+شحن محلي داخل الدولة
+
+شحن دولي بين الدول
+
+شحن محلي ودولي
+
+**2. الفروع**
+
+فرع واحد حالياً
+
+عدة فروع في دول مختلفة
+
+فرع واحد حالياً مع توسع مستقبلي
+
+**3. لغة الموقع ولوحة التحكم**
+
+الإنجليزية فقط
+
+الإنجليزية والعربية
+
+متعدد اللغات وقابل لإضافة لغات جديدة
+
+**4. تطبيقات الموبايل**
+
+مستقبلاً باستخدام Flutter
+
+تطوير تطبيقات الموبايل بالتزامن مع النظام
+
+**5. طرق الدفع المطلوبة**
+
+يمكن اختيار أكثر من طريقة.
+
+Cash
+
+Cash on Delivery (COD)
+
+Bank Transfer
+
+Mobile Money (MTN / Airtel)
+
+Visa / Mastercard
+
+اعتماد القرارات ومتابعة تصميم النظام
+
+**رأيي النهائي:** لا تبدأ بالـ Frontend مباشرة. أول خطوة احترافية هي تثبيت الـ Business Requirements، ثم تصميم Database ERD، ثم API Specification، وبعدها تبدأ التنفيذ.
+
+بهذه الطريقة نضمن أن Bublix ما يكون مجرد موقع جميل، بل نظام شحن قابل للتوسع ويقدر يخدم عدة فروع ودول وعملاء دون الحاجة لإعادة بناء أساسه.
+
+ويمكنني أيضاً متابعة تقدم تنفيذ Bublix أسبوعياً ومراجعة جودة الكود والبنية التقنية معاك.
+
+🚚مراجعة تقدم Bublix أسبوعياًTap to set up

@@ -1,0 +1,21 @@
+# Bublix Shipping – Root .gitignore
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+Thumbs.db
+.next/
+out/
+dist/
+build/
+*.pem
+.vercel
+.railway
+coverage/
+.nyc_output/
