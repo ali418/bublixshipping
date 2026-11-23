@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const { responseFormatter, errorHandler, notFound } = require('./middleware/response.middleware');
 
@@ -25,7 +26,10 @@ const documentRoutes = require('./modules/documents/documents.routes');
 const app = express();
 
 // ─── Security ──────────────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// ─── Static Files (Website & Assets) ──────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
   origin: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(','),
@@ -76,14 +80,26 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ─── Root ──────────────────────────────────────────────────────────────────────
+// ─── Frontend & Admin UI Routes ───────────────────────────────────────────────
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/admin/*splat', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ─── API Overview ──────────────────────────────────────────────────────────────
+app.get(['/api', '/api/v1'], (req, res) => {
   res.status(200).json({
     success: true,
     service: 'Bublix Shipping Global Logistics API',
     version: `v${process.env.API_VERSION || '1'}`,
     website: 'https://bublixshipping.com',
-    docs: '/api/v1',
     health: '/health',
     endpoints: {
       auth: '/api/v1/auth',

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bublix Shipping — Admin Portal</title>
+  <link rel="icon" type="image/jpeg" href="/logo.jpg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bublix: {
+              teal: '#0A5C6B',
+              'teal-dark': '#063D47',
+              'teal-light': '#127A8D',
+              gold: '#C9A227',
+              'gold-light': '#DFC25D',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+
+  <!-- ── LOGIN SCREEN (if not logged in) ─────────────────────────────────── -->
+  <div id="loginView" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#063D47] via-[#0A5C6B] to-[#127A8D]">
+    <div class="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md border border-slate-200">
+      <div class="text-center mb-8">
+        <img src="/logo.jpg" alt="Bublix Logo" class="h-16 w-16 mx-auto rounded-2xl shadow-md border-2 border-amber-300/40 object-cover mb-4">
+        <h1 class="text-2xl font-extrabold text-[#063D47]">Bublix Shipping</h1>
+        <p class="text-slate-500 text-xs font-semibold tracking-wider uppercase mt-1">Staff & Logistics Portal</p>
+      </div>
+
+      <div id="loginError" class="hidden mb-4 p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium"></div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
+          <input type="email" id="loginEmail" required value="admin@bublixshipping.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0A5C6B] text-sm font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+          <input type="password" id="loginPassword" required value="Admin@123456" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0A5C6B] text-sm font-medium">
+        </div>
+        <button type="submit" id="loginBtn" class="w-full bg-[#0A5C6B] hover:bg-[#063D47] text-white font-bold py-3.5 rounded-xl transition shadow hover:shadow-lg text-sm mt-2">
+          Sign In to Dashboard
+        </button>
+      </form>
+
+      <div class="mt-8 text-center border-t border-slate-100 pt-6">
+        <a href="/" class="text-xs text-[#0A5C6B] hover:underline font-semibold">← Return to Public Website</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD VIEW (if logged in) ───────────────────────────────────── -->
+  <div id="dashboardView" class="hidden min-h-screen flex flex-col md:flex-row">
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-[#063D47] text-white flex flex-col border-r border-teal-900 shadow-xl">
+      <div class="p-5 border-b border-teal-900/80 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2.5">
+          <img src="/logo.jpg" alt="Bublix Logo" class="h-9 w-9 rounded-xl object-cover">
+          <div>
+            <div class="text-sm font-extrabold text-[#C9A227] leading-none">BUBLIX</div>
+            <span class="text-[10px] text-teal-300 uppercase tracking-widest font-semibold">Admin Panel</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="p-3 space-y-1 text-sm font-medium flex-1">
+        <button onclick="switchTab('overview')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-teal-100 hover:bg-white/10 transition active-nav" data-tab="overview">
+          <span>📊</span> Overview & Metrics
+        </button>
+        <button onclick="switchTab('shipments')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-teal-100 hover:bg-white/10 transition" data-tab="shipments">
+          <span>📦</span> Shipments
+        </button>
+        <button onclick="switchTab('create')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-teal-100 hover:bg-white/10 transition" data-tab="create">
+          <span>➕</span> New Shipment
+        </button>
+        <button onclick="switchTab('hubs')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-teal-100 hover:bg-white/10 transition" data-tab="hubs">
+          <span>🏢</span> Hubs & Branches
+        </button>
+        <button onclick="switchTab('customers')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-teal-100 hover:bg-white/10 transition" data-tab="customers">
+          <span>👥</span> Customers
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-teal-900/80 bg-black/10">
+        <div class="text-xs text-teal-200 mb-0.5" id="userEmail">admin@bublixshipping.com</div>
+        <div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-3">SUPER ADMIN</div>
+        <button onclick="handleLogout()" class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200 text-xs font-semibold py-2 rounded-lg transition">
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 sm:p-10 overflow-y-auto">
+
+      <!-- TAB: OVERVIEW -->
+      <section id="tab-overview" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Logistics Overview</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Live platform metrics & shipment distribution</p>
+          </div>
+          <button onclick="switchTab('create')" class="bg-[#0A5C6B] hover:bg-[#063D47] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+            + Create Shipment
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <span class="text-xs text-slate-400 font-semibold block mb-1">Total Shipments</span>
+            <div id="statTotal" class="text-3xl font-extrabold text-slate-900">0</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <span class="text-xs text-slate-400 font-semibold block mb-1">In Transit / Active</span>
+            <div id="statActive" class="text-3xl font-extrabold text-[#0A5C6B]">0</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <span class="text-xs text-slate-400 font-semibold block mb-1">Delivered Successfully</span>
+            <div id="statDelivered" class="text-3xl font-extrabold text-emerald-600">0</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <span class="text-xs text-slate-400 font-semibold block mb-1">COD Pending</span>
+            <div id="statCOD" class="text-3xl font-extrabold text-[#C9A227]">$0</div>
+          </div>
+        </div>
+
+        <!-- Recent Shipments Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Recent Shipments</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-3">Tracking #</th>
+                  <th class="py-3 px-3">Receiver</th>
+                  <th class="py-3 px-3">Route</th>
+                  <th class="py-3 px-3">Status</th>
+                  <th class="py-3 px-3">Amount</th>
+                  <th class="py-3 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="overviewTable" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">Loading shipments...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: SHIPMENTS -->
+      <section id="tab-shipments" class="hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Shipments Management</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Generate Waybills, print labels, and update tracking events</p>
+          </div>
+          <button onclick="loadShipments()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition">
+            🔄 Refresh
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-3">Waybill / Code</th>
+                  <th class="py-3 px-3">Receiver Name</th>
+                  <th class="py-3 px-3">Weight</th>
+                  <th class="py-3 px-3">Status</th>
+                  <th class="py-3 px-3">Payment</th>
+                  <th class="py-3 px-3 text-right">Documents</th>
+                </tr>
+              </thead>
+              <tbody id="shipmentsTable" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: CREATE SHIPMENT -->
+      <section id="tab-create" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Create New Shipment</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Assign Waybill barcode, route, and charges</p>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-3xl">
+          <div id="createMsg" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold"></div>
+          <form onsubmit="handleCreateShipment(event)" class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Receiver Name *</label>
+                <input type="text" id="recName" required placeholder="John Doe" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Receiver Phone *</label>
+                <input type="text" id="recPhone" required placeholder="+256 700 000 000" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Receiver Email</label>
+                <input type="email" id="recEmail" placeholder="client@example.com" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Destination Address</label>
+                <input type="text" id="recAddress" placeholder="Street, Building, City" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Actual Weight (KG) *</label>
+                <input type="number" id="shpWeight" required step="0.1" value="1.5" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Total Pieces</label>
+                <input type="number" id="shpPieces" required value="1" min="1" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Shipping Cost ($) *</label>
+                <input type="number" id="shpCost" required step="0.1" value="25.00" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+                <select id="shpPayment" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+                  <option value="PREPAID">PREPAID</option>
+                  <option value="COD">CASH ON DELIVERY (COD)</option>
+                  <option value="CREDIT">CREDIT ACCOUNT</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">COD Amount ($ if applicable)</label>
+                <input type="number" id="shpCOD" step="0.1" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Item Description</label>
+              <input type="text" id="shpDesc" placeholder="Electronics, documents, spare parts..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+            </div>
+
+            <button type="submit" id="createBtn" class="bg-[#0A5C6B] hover:bg-[#063D47] text-white font-bold px-6 py-3 rounded-xl transition text-sm">
+              Create Shipment & Generate Waybill
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB: HUBS -->
+      <section id="tab-hubs" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Hubs & Operational Gateways</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Central depots, sorting facilities & cross-border lanes</p>
+        </div>
+        <div id="hubsList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- TAB: CUSTOMERS -->
+      <section id="tab-customers" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Customer Directory</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Registered merchants and corporate shipping accounts</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div id="customersList" class="text-xs text-slate-400">Loading customers...</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('bublix_token');
+
+    // Check auth on load
+    if (token) {
+      showDashboard();
+    } else {
+      showLogin();
+    }
+
+    function showLogin() {
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('dashboardView').classList.add('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+      loadOverview();
+      loadShipments();
+      loadHubs();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('loginError');
+      errBox.classList.add('hidden');
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          errBox.innerText = data.message || 'Invalid credentials';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        token = data.data.accessToken;
+        localStorage.setItem('bublix_token', token);
+        showDashboard();
+      } catch (err) {
+        errBox.innerText = 'Connection error. Please try again.';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('bublix_token');
+      token = null;
+      showLogin();
+    }
+
+    function switchTab(tabId) {
+      ['overview', 'shipments', 'create', 'hubs', 'customers'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        if (el) el.classList.add('hidden');
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('bg-white/10', 'text-[#C9A227]');
+        } else {
+          btn.classList.remove('bg-white/10', 'text-[#C9A227]');
+        }
+      });
+    }
+
+    async function loadOverview() {
+      try {
+        const res = await fetch('/api/v1/reports/dashboard', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const d = await res.json();
+        if (d.success && d.data) {
+          const s = d.data.stats || {};
+          document.getElementById('statTotal').innerText = s.totalShipments || 0;
+          document.getElementById('statActive').innerText = s.activeShipments || 0;
+          document.getElementById('statDelivered').innerText = s.deliveredShipments || 0;
+          document.getElementById('statCOD').innerText = `$${Number(s.pendingCOD || 0).toLocaleString()}`;
+        }
+      } catch (e) {}
+    }
+
+    async function loadShipments() {
+      try {
+        const res = await fetch('/api/v1/shipments?limit=30', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const d = await res.json();
+        const list = d.data || [];
+        renderTable(list, 'overviewTable', true);
+        renderTable(list, 'shipmentsTable', false);
+      } catch (e) {}
+    }
+
+    function renderTable(list, targetId, isShort) {
+      const tbody = document.getElementById(targetId);
+      if (!tbody) return;
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">No shipments found. Create your first shipment!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(s => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-3 font-mono font-bold text-[#0A5C6B]">${s.trackingNumber}</td>
+          <td class="py-3 px-3 font-medium text-slate-700">${s.receiverName || '—'}<br><span class="text-xs text-slate-400">${s.receiverPhone || ''}</span></td>
+          <td class="py-3 px-3 text-xs text-slate-500">${s.originHub?.code || '—'} → ${s.destinationHub?.code || '—'}</td>
+          <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-[#0A5C6B]">${s.shipmentStatus}</span></td>
+          <td class="py-3 px-3 text-xs font-semibold text-slate-700">$${s.totalAmount || s.shippingCost || 0}</td>
+          <td class="py-3 px-3 text-right space-x-1">
+            <a href="/api/v1/documents/waybill/${s.id}" target="_blank" class="inline-block text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold transition">
+              📄 Waybill
+            </a>
+            <a href="/api/v1/documents/label/${s.id}" target="_blank" class="inline-block text-xs bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 px-2.5 py-1 rounded-lg font-semibold transition">
+              🏷️ Label
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadHubs() {
+      try {
+        const res = await fetch('/api/v1/hubs', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const d = await res.json();
+        const list = d.data || [];
+        const container = document.getElementById('hubsList');
+        if (!container) return;
+        container.innerHTML = list.map(h => `
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="font-bold text-slate-900">${h.name}</h4>
+                <span class="text-xs font-mono font-semibold text-[#0A5C6B]">${h.code}</span>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-600">${h.hubType}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">📍 ${h.address || h.city?.name || 'Central Gateway'}</p>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    async function handleCreateShipment(e) {
+      e.preventDefault();
+      const msg = document.getElementById('createMsg');
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true;
+
+      const payload = {
+        receiverName: document.getElementById('recName').value,
+        receiverPhone: document.getElementById('recPhone').value,
+        receiverEmail: document.getElementById('recEmail').value || undefined,
+        receiverAddress: { line1: document.getElementById('recAddress').value },
+        actualWeight: parseFloat(document.getElementById('shpWeight').value),
+        totalPieces: parseInt(document.getElementById('shpPieces').value) || 1,
+        shippingCost: parseFloat(document.getElementById('shpCost').value),
+        paymentMethod: document.getElementById('shpPayment').value,
+        codAmount: parseFloat(document.getElementById('shpCOD').value) || 0,
+        shipmentType: 'DOMESTIC',
+        currency: 'USD',
+        items: [{ description: document.getElementById('shpDesc').value || 'General Goods', quantity: 1 }]
+      };
+
+      try {
+        const res = await fetch('/api/v1/shipments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if (d.success) {
+          msg.className = 'mb-4 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl font-bold';
+          msg.innerHTML = `✓ Shipment created! Tracking: <strong>${d.data.trackingNumber}</strong> — <a href="/api/v1/documents/waybill/${d.data.id}" target="_blank" class="underline">Print Waybill</a>`;
+          msg.classList.remove('hidden');
+          loadShipments();
+          loadOverview();
+        } else {
+          msg.className = 'mb-4 p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-bold';
+          msg.innerText = d.message || 'Creation failed';
+          msg.classList.remove('hidden');
+        }
+      } catch (err) {
+        msg.className = 'mb-4 p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-bold';
+        msg.innerText = 'Server error.';
+        msg.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
