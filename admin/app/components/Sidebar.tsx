@@ -5,18 +5,38 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', emoji: '📊' },
-  { href: '/shipments/create', label: 'New Shipment', emoji: '➕' },
-  { href: '/shipments', label: 'Shipments', emoji: '📦' },
-  { href: '/customers', label: 'Customers', emoji: '👥' },
-  { href: '/finance/invoices', label: 'Invoices', emoji: '📄' },
-  { href: '/finance/payments', label: 'Payments', emoji: '💳' },
-  { href: '/finance/cod', label: 'COD', emoji: '💵' },
-  { href: '/hubs', label: 'Branches', emoji: '🏢' },
-  { href: '/users', label: 'Users', emoji: '👤' },
-  { href: '/pricing', label: 'Pricing', emoji: '💲' },
-  { href: '/reports', label: 'Reports', emoji: '📈' },
+const navGroups = [
+  {
+    label: 'Main',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', emoji: '📊' },
+    ],
+  },
+  {
+    label: 'Shipments',
+    items: [
+      { href: '/shipments/create', label: 'New Shipment', emoji: '➕' },
+      { href: '/shipments', label: 'All Shipments', emoji: '📦' },
+      { href: '/customers', label: 'Customers', emoji: '👥' },
+    ],
+  },
+  {
+    label: 'Finance',
+    items: [
+      { href: '/finance/invoices', label: 'Invoices', emoji: '📄' },
+      { href: '/finance/payments', label: 'Payments', emoji: '💳' },
+      { href: '/finance/cod', label: 'COD', emoji: '💵' },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { href: '/hubs', label: 'Branches', emoji: '🏢' },
+      { href: '/users', label: 'Users', emoji: '👤' },
+      { href: '/pricing', label: 'Pricing', emoji: '💲' },
+      { href: '/reports', label: 'Reports', emoji: '📈' },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -32,24 +52,31 @@ export default function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        {navItems.map((item) => {
-          const active = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-teal-700 text-yellow-400'
-                  : 'text-teal-200 hover:bg-teal-800 hover:text-white'
-              }`}
-            >
-              <span>{item.emoji}</span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-4">
+        {navGroups.map(group => (
+          <div key={group.label}>
+            <p className="text-xs font-semibold text-teal-500 uppercase tracking-widest px-3 mb-1">{group.label}</p>
+            {group.items.map((item) => {
+              const active = item.href === '/shipments'
+                ? pathname === '/shipments' || (pathname.startsWith('/shipments/') && pathname !== '/shipments/create')
+                : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-teal-700 text-yellow-400'
+                      : 'text-teal-200 hover:bg-teal-800 hover:text-white'
+                  }`}
+                >
+                  <span>{item.emoji}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User */}
