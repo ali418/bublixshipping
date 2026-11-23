@@ -99,7 +99,7 @@ export default function HomePage() {
       {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer className="bg-gray-900 text-gray-400 py-10 px-4 text-center text-sm">
         <p className="text-white font-semibold text-lg mb-1">🚚 Bublix Shipping</p>
-        <p>© {new Date().getFullYear()} Bublix Shipping. All rights reserved.</p>
+        <p>© 2026 Bublix Shipping. All rights reserved.</p>
         <p className="mt-1">📍 Kampala, Uganda &nbsp;|&nbsp; 📞 +256 700 000 000 &nbsp;|&nbsp; ✉️ info@bublixshipping.com</p>
       </footer>
     </main>
