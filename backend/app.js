@@ -76,6 +76,28 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─── Root ──────────────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: 'Bublix Shipping Global Logistics API',
+    version: `v${process.env.API_VERSION || '1'}`,
+    website: 'https://bublixshipping.com',
+    docs: '/api/v1',
+    health: '/health',
+    endpoints: {
+      auth: '/api/v1/auth',
+      shipments: '/api/v1/shipments',
+      tracking: '/api/v1/tracking/:trackingNumber',
+      customers: '/api/v1/customers',
+      pricing: '/api/v1/pricing',
+      finance: '/api/v1/finance',
+      reports: '/api/v1/reports',
+      documents: '/api/v1/documents',
+    },
+  });
+});
+
 // ─── API Routes ────────────────────────────────────────────────────────────────
 const API_PREFIX = `/api/${process.env.API_VERSION || 'v1'}`;
 
